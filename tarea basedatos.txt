@@ -1,0 +1,111 @@
+
+---CONSULTAS-----------------------------------]
+--1.	Muestre el nombre de los deportes y de los socios que 
+--participan en deportes de tipo general.
+
+select dep_nombre, soc_nombre
+from socio s, deporte d, asiste a
+where s.soc_cod= a.soc_cod and d.dep_id=a.dep_id and dep_nivel='general'
+
+--2.	Muestre el nombre de los deportes y de los socios que
+--participan en deportes de tipo general o avanzado.
+
+select distinct soc_nombre , dep_nombre 
+from socio s, deporte d , asiste a
+where s.soc_cod=a.soc_cod and d.dep_id= a.dep_id 
+and (dep_nivel='general' or dep_nivel ='avanzado')
+
+
+SELECT DEP_NOMBRE, SOC_NOMBRE
+FROM SOCIO S, DEPORTE D, ASISTE A
+WHERE S.SOC_COD=A.SOC_COD AND A.DEP_ID=D.DEP_ID
+AND DEP_NIVEL IN ('GENERAL','AVANZADO')
+
+SELECT DEP_NOMBRE, SOC_NOMBRE
+FROM SOCIO S, DEPORTE D, ASISTE A
+WHERE S.SOC_COD=A.SOC_COD AND A.DEP_ID=D.DEP_ID
+AND DEP_NIVEL = 'GENERAL'
+UNION
+SELECT DEP_NOMBRE, SOC_NOMBRE
+FROM SOCIO S, DEPORTE D, ASISTE A
+WHERE S.SOC_COD=A.SOC_COD AND A.DEP_ID=D.DEP_ID
+AND DEP_NIVEL = 'AVANZADO'
+
+
+3.	Muestre el nombre de los socios que asistieron entre el 10 y 20 de julio.
+
+select distinct soc_nombre
+from socio s, asiste a 
+where s.soc_cod= a.soc_cod and( a.asi_fecha between '10-07-2022' and '20-07-2022') 
+
+
+
+
+--4.	Muestre el nombre de los socios que practican nataci�n.
+
+select distinct soc_nombre 
+from socio s , deporte d, asiste a
+where s.soc_cod= a.soc_cod and d.dep_id= a.dep_id
+and (dep_nombre= 'natacion_ava' or dep_nombre= 'natacion_bas')
+
+SELECT SOC_NOMBRE
+FROM SOCIO S, ASISTE A, DEPORTE D
+WHERE S.SOC_COD=A.SOC_COD AND A.DEP_ID=D.DEP_ID AND DEP_NOMBRE LIKE 'natacion%'
+
+--5.	Muestre el nombre de los deportes que no participan socios intermedios
+
+SELECT DEP_NOMBRE
+FROM DEPORTE D, ASISTE A
+WHERE D.DEP_ID=A.DEP_ID AND NOT EXISTS 
+    (SELECT * FROM SOCIO S WHERE SOC_TIPO='INTERMEDIO' AND A.SOC_COD=S.SOC_COD)
+    
+SELECT DEP_NOMBRE
+FROM DEPORTE D, ASISTE A
+WHERE D.DEP_ID=A.DEP_ID AND A.SOC_COD NOT IN 
+    (SELECT SOC_COD FROM SOCIO S WHERE SOC_TIPO='INTERMEDIO');
+--6.	Muestre el nombre de los deportes que no participan socios intermedios 
+--ni permanente
+
+SELECT DEP_NOMBRE
+FROM DEPORTE D, ASISTE A
+WHERE D.DEP_ID=A.DEP_ID AND A.SOC_COD NOT IN 
+    (SELECT SOC_COD FROM SOCIO S WHERE SOC_TIPO='INTERMEDIO' OR SOC_TIPO='AVANZADO')
+7.	Muestre el o los nombres de los socios que S�LO practican deportes avanzados
+
+select distinct soc_nombre
+from socio s ,deporte d, asiste a
+where s.soc_cod= a.soc_cod and d.dep_id= a.dep_id and dep_nivel ='avanzado'
+
+
+
+
+
+SELECT SOC_NOMBRE
+FROM SOCIO S, ASISTE A, DEPORTE D
+WHERE S.SOC_COD=A.SOC_COD AND D.DEP_ID=A.DEP_ID AND DEP_NIVEL ='AVANZADO' AND
+NOT EXISTS (SELECT * FROM ASISTE A1, DEPORTE D1 WHERE D1.DEP_ID=A1.DEP_ID AND
+            DEP_NIVEL <>'AVANZADO' AND S.SOC_COD=A1.SOC_COD);
+
+--8.	Muestre el nombre de los deportes y de los socios y 
+--la cantidad de veces que asistieron durante el mes de julio del a�o 2022
+
+SELECT DEP_NOMBRE, SOC_NOMBRE, COUNT (1)
+FROM SOCIO S, DEPORTE D, ASISTE A
+WHERE S.SOC_COD=A.SOC_COD AND A.DEP_ID=D.DEP_ID AND 
+ASI_FECHA BETWEEN '01/07/2022' AND '30/07/2022'
+GROUP BY DEP_NOMBRE, SOC_NOMBRE
+HAVING COUNT (1)>2 ;
+--9.	Muestre el nombre del o los socios que m�s asistencia 
+--tuvo durante el mes de julio del 2022
+CREATE VIEW ASISTENCIA(NOMBRE_SOCIO, VECES) AS (
+SELECT SOC_NOMBRE, COUNT (1)
+FROM SOCIO S, ASISTE A
+WHERE S.SOC_COD=A.SOC_COD AND 
+ASI_FECHA BETWEEN '01/07/2022' AND '30/07/2022'
+GROUP BY SOC_NOMBRE)
+
+SELECT NOMBRE_SOCIO FROM ASISTENCIA 
+WHERE VECES = (SELECT MAX(VECES) FROM ASISTENCIA)
+
+SELECT NOMBRE_SOCIO, MAX(VECES) FROM ASISTENCIA
+GROUP BY NOMBRE_SOCIO;
